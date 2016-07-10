@@ -14,11 +14,13 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 
 	Node: XXXX is your last four digit S/N of your camera, change it !!
 
-3. update launch file configuration file name in zed_cpu_ros.launch into your SNXXXX.conf
+3. put the .conf file into zed_cpu_ros/config folder
+
+4. update launch file configuration file name in zed_cpu_ros.launch into your SNXXXX.conf
     ```
     roscd zed_cpu_ros/launch
     ```
-4. launch the code
+5. launch the code
     ```
     roslaucnh zed_cpu_ros zed_cpu_ros.launch
     ```
