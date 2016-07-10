@@ -4,25 +4,31 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 
 # Useage:
 1. git the packge into your working space
+    ```
+    cd catkin_ws/src
+    git clone https://github.com/transcendrobotics/zed_cpu_ros
+    cd ..
+    catkin_make
+    ```
 2. find your zed calibration files in
     ```
-    	cd /usr/local/zed/settings
+	cd /usr/local/zed/settings
     ```
-
 	or download from:
 	http://calib.stereolabs.com/?SN=XXXX
 
-	Node: XXXX is your last four digit S/N of your camera, change it !!
+	Note: XXXX is your last four digit S/N of your camera, make sure to change it!!
 
 3. put the .conf file into zed_cpu_ros/config folder
 
 4. update launch file configuration file name in zed_cpu_ros.launch into your SNXXXX.conf
     ```
     roscd zed_cpu_ros/launch
+    gedit zed_cpu_ros.launch
     ```
 5. launch the code
     ```
-    roslaucnh zed_cpu_ros zed_cpu_ros.launch
+    roslaunch zed_cpu_ros zed_cpu_ros.launch
     ```
 ## Launch file parameters
 
@@ -36,12 +42,12 @@ A simple zed camera driver which only use CPU and only publish left and right ra
  left_frame_id                | Left Frame ID                                               | string        
  right_frame_id               | Right Frame ID                                              | string        
  config_file_location         | The location of ZED calibration file                        | string        
- show_image                   | Wether to use opencv show image                             | bool        
+ show_image                   | Whether to use opencv show image                            | bool        
 
 # TODO:
 
 1. add the launch file for stereo_proc.
-2. add the nodelet function.
+2. add the nodelet functionality.
 
 # Transcend Robotics:
 Patented articulated traction control ARTI technology for stair climbing and obstacle traversal without complex software or controls
