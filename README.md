@@ -4,12 +4,14 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 
 # Useage:
 1. git the packge into your working space
+
     ```
     cd catkin_ws/src
     git clone https://github.com/transcendrobotics/zed_cpu_ros
     cd ..
     catkin_make
     ```
+
 2. find your zed calibration files in
     ```
 	cd /usr/local/zed/settings
