@@ -24,6 +24,19 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     ```
     roslaucnh zed_cpu_ros zed_cpu_ros.launch
     ```
+## Launch file parameters
+
+ Parameter                    |           Description                                       |              Value          
+------------------------------|-------------------------------------------------------------|-------------------------           
+ resolution                   | ZED Camera resolution                                       | '0': HD2K                   
+ _                            | _                                                           | '1': HD1080                 
+ _                            | _                                                           | '2': HD720                  
+ _                            | _                                                           | '3': VGA                                    
+ frame_rate                   | Rate at which images are published                          | int                                             
+ left_frame_id                | Left Frame ID                                               | string        
+ right_frame_id               | Right Frame ID                                              | string        
+ config_file_location         | The location of ZED calibration file                        | string        
+ show_image                   | Wether to use opencv show image                             | bool        
 
 # TODO:
 
