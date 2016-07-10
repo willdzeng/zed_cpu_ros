@@ -28,6 +28,11 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     roscd zed_cpu_ros/launch
     gedit zed_cpu_ros.launch
     ```
+    change XXXX into the .conf file you have, for example 1010
+    ```
+    <arg name="config_file_location" default="$(find zed_cpu_ros)/config/SN1010.conf"/>
+    ```
+
 5. launch the code
     ```
     roslaunch zed_cpu_ros zed_cpu_ros.launch
