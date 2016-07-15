@@ -6,7 +6,7 @@
 	<param name="resolution" value="1"/>
 	<param name="frame_rate" value="30"/>
 	<param name="config_file_location" value="$(arg config_file_location)"/>
-	<param name="show_image" value="false"/>
+	<param name="show_image" value="true"/>
 	<param name="left_frame_id" value="left_camera"/>
 	<param name="right_frame_id" value="right_camera"/>
 </node>

@@ -29,7 +29,7 @@ public:
 	 * @param[in]  resolution  The resolution
 	 * @param[in]  frame_rate  The frame rate
 	 */
-	StereoCamera(int resolution, double frame_rate):frame_rate_(30.0) {
+	StereoCamera(int resolution, double frame_rate): frame_rate_(30.0) {
 
 		camera_ = new cv::VideoCapture(0);
 		cv::Mat raw;
@@ -37,9 +37,14 @@ public:
 		cv::Mat right_image;
 		setResolution(resolution);
 		setFrameRate(frame_rate);
-		
+
 		std::cout << "Stereo Camera Set Resolution: " << camera_->get(WIDTH_ID) << "x" << camera_->get(HEIGHT_ID) << std::endl;
 		std::cout << "Stereo Camera Set Frame Rate: " << camera_->get(FPS_ID) << std::endl;
+	}
+
+	~StereoCamera() {
+		// std::cout << "Destroy the pointer" << std::endl;
+		delete camera_;
 	}
 
 	/**
@@ -89,14 +94,11 @@ public:
 			cv::Rect right_rect(width_ / 2, 0, width_ / 2, height_);
 			left_image = raw(left_rect);
 			right_image = raw(right_rect);
+			cv::waitKey(10);
 			return true;
 		} else {
 			return false;
 		}
-	}
-
-	~StereoCamera() {
-		delete camera_;
 	}
 
 private:
@@ -130,8 +132,11 @@ public:
 		private_nh.param("right_frame_id", right_frame_id_, std::string("right_camera"));
 		private_nh.param("show_image", show_image_, false);
 
+		ROS_INFO("Try to initialize the camera");
 		// initialize camera
 		StereoCamera zed(resolution_, frame_rate_);
+		ROS_INFO("Initialized the camera");
+
 		// set up empty message pointer
 		sensor_msgs::CameraInfoPtr left_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
 		sensor_msgs::CameraInfoPtr right_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
@@ -144,20 +149,31 @@ public:
 		ros::Publisher left_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("left/camera_info", 1);
 		ros::Publisher right_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("right/camera_info", 1);
 
+		ROS_INFO("Try load camera calibration files");
+
 		//get camera info
-		getCameraInfo(config_file_location_, resolution_, left_cam_info_msg_ptr, right_cam_info_msg_ptr);
+		try {
+			getCameraInfo(config_file_location_, resolution_, left_cam_info_msg_ptr, right_cam_info_msg_ptr);
+		}
+		catch (std::runtime_error& e) {
+			ROS_INFO("Can't load camera info");
+			throw e;
+		}
+
 		// ROS_INFO("Left Camera Info as following");
 		// std::cout << *left_cam_info_msg_ptr << std::endl;
 		// ROS_INFO("Right Camera Info as following");
 		// std::cout << *right_cam_info_msg_ptr << std::endl;
 
+		ROS_INFO("Got camera calibration files");
+
 		// loop to publish images;
 		cv::Mat left_image, right_image;
 		while (nh.ok()) {
 			ros::Time now = ros::Time::now();
-			if (!zed.getImages(left_image, right_image)){
+			if (!zed.getImages(left_image, right_image)) {
 				ROS_INFO_ONCE("Can't find camera");
-			}else{
+			} else {
 				ROS_INFO_ONCE("Success, found camera");
 			}
 			if (show_image_) {
