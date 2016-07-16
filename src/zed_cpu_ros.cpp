@@ -10,6 +10,7 @@
 #include <image_transport/image_transport.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <camera_info_manager/camera_info_manager.h>
 
 #define WIDTH_ID 3
 #define HEIGHT_ID 4
@@ -132,69 +133,87 @@ public:
 		private_nh.param("right_frame_id", right_frame_id_, std::string("right_camera"));
 		private_nh.param("show_image", show_image_, false);
 
-		ROS_INFO("Try to initialize the camera");
-		// initialize camera
-		StereoCamera zed(resolution_, frame_rate_);
-		ROS_INFO("Initialized the camera");
+		camera_info_manager::CameraInfoManager info_manager(nh);
+		info_manager.setCameraName("zed/left");
+		info_manager.loadCameraInfo( "package://zed_cpu_ros/config/left.yaml");
+		sensor_msgs::CameraInfo left_info = info_manager.getCameraInfo();
 
-		// set up empty message pointer
-		sensor_msgs::CameraInfoPtr left_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
-		sensor_msgs::CameraInfoPtr right_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
+		info_manager.setCameraName("zed/right");
+		info_manager.loadCameraInfo( "package://zed_cpu_ros/config/right.yaml");
+		sensor_msgs::CameraInfo right_info = info_manager.getCameraInfo();
 
-		// setup publisher stuff
-		image_transport::ImageTransport it(nh);
-		image_transport::Publisher left_image_pub = it.advertise("left/image_raw", 1);
-		image_transport::Publisher right_image_pub = it.advertise("right/image_raw", 1);
+		// camera_info_manager::CameraInfoManager left_info_manager(nh, "zed/left", "package://zed_cpu_ros/config/left.yaml");
+		// camera_info_manager::CameraInfoManager right_info_manager(nh, "zed/right", "package://zed_cpu_ros/config/right.yaml");
 
-		ros::Publisher left_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("left/camera_info", 1);
-		ros::Publisher right_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("right/camera_info", 1);
+		// sensor_msgs::CameraInfo left_info = left_info_manager.getCameraInfo();
+		// sensor_msgs::CameraInfo right_info = right_info_manager.getCameraInfo();
 
-		ROS_INFO("Try load camera calibration files");
+		std::cout << left_info << std::endl;
+		std::cout << right_info << std::endl;
 
-		//get camera info
-		try {
-			getCameraInfo(config_file_location_, resolution_, left_cam_info_msg_ptr, right_cam_info_msg_ptr);
-		}
-		catch (std::runtime_error& e) {
-			ROS_INFO("Can't load camera info");
-			throw e;
-		}
+		// ROS_INFO("Try to initialize the camera");
+		// // initialize camera
+		// StereoCamera zed(resolution_, frame_rate_);
+		// ROS_INFO("Initialized the camera");
 
-		// ROS_INFO("Left Camera Info as following");
-		// std::cout << *left_cam_info_msg_ptr << std::endl;
-		// ROS_INFO("Right Camera Info as following");
-		// std::cout << *right_cam_info_msg_ptr << std::endl;
+		// // set up empty message pointer
+		// sensor_msgs::CameraInfoPtr left_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
+		// sensor_msgs::CameraInfoPtr right_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
 
-		ROS_INFO("Got camera calibration files");
+		// // setup publisher stuff
+		// image_transport::ImageTransport it(nh);
+		// image_transport::Publisher left_image_pub = it.advertise("left/image_raw", 1);
+		// image_transport::Publisher right_image_pub = it.advertise("right/image_raw", 1);
 
-		// loop to publish images;
-		cv::Mat left_image, right_image;
-		while (nh.ok()) {
-			ros::Time now = ros::Time::now();
-			if (!zed.getImages(left_image, right_image)) {
-				ROS_INFO_ONCE("Can't find camera");
-			} else {
-				ROS_INFO_ONCE("Success, found camera");
-			}
-			if (show_image_) {
-				cv::imshow("left", left_image);
-				cv::imshow("right", right_image);
-			}
+		// ros::Publisher left_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("left/camera_info", 1);
+		// ros::Publisher right_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("right/camera_info", 1);
 
-			if (left_image_pub.getNumSubscribers() > 0) {
-				publishImage(left_image, left_image_pub, "left_frame", now);
-			}
-			if (right_image_pub.getNumSubscribers() > 0) {
-				publishImage(right_image, right_image_pub, "right_frame", now);
-			}
-			if (left_cam_info_pub.getNumSubscribers() > 0) {
-				publishCamInfo(left_cam_info_pub, left_cam_info_msg_ptr, now);
-			}
-			if (right_cam_info_pub.getNumSubscribers() > 0) {
-				publishCamInfo(right_cam_info_pub, right_cam_info_msg_ptr, now);
-			}
-			// since the frame rate was set inside the camera, no need to do a ros sleep
-		}
+		// ROS_INFO("Try load camera calibration files");
+
+		// //get camera info
+		// try {
+		// 	getCameraInfo(config_file_location_, resolution_, left_cam_info_msg_ptr, right_cam_info_msg_ptr);
+		// }
+		// catch (std::runtime_error& e) {
+		// 	ROS_INFO("Can't load camera info");
+		// 	throw e;
+		// }
+
+		// // ROS_INFO("Left Camera Info as following");
+		// // std::cout << *left_cam_info_msg_ptr << std::endl;
+		// // ROS_INFO("Right Camera Info as following");
+		// // std::cout << *right_cam_info_msg_ptr << std::endl;
+
+		// ROS_INFO("Got camera calibration files");
+
+		// // loop to publish images;
+		// cv::Mat left_image, right_image;
+		// while (nh.ok()) {
+		// 	ros::Time now = ros::Time::now();
+		// 	if (!zed.getImages(left_image, right_image)) {
+		// 		ROS_INFO_ONCE("Can't find camera");
+		// 	} else {
+		// 		ROS_INFO_ONCE("Success, found camera");
+		// 	}
+		// 	if (show_image_) {
+		// 		cv::imshow("left", left_image);
+		// 		cv::imshow("right", right_image);
+		// 	}
+
+		// 	if (left_image_pub.getNumSubscribers() > 0) {
+		// 		publishImage(left_image, left_image_pub, "left_frame", now);
+		// 	}
+		// 	if (right_image_pub.getNumSubscribers() > 0) {
+		// 		publishImage(right_image, right_image_pub, "right_frame", now);
+		// 	}
+		// 	if (left_cam_info_pub.getNumSubscribers() > 0) {
+		// 		publishCamInfo(left_cam_info_pub, left_cam_info_msg_ptr, now);
+		// 	}
+		// 	if (right_cam_info_pub.getNumSubscribers() > 0) {
+		// 		publishCamInfo(right_cam_info_pub, right_cam_info_msg_ptr, now);
+		// 	}
+		// 	// since the frame rate was set inside the camera, no need to do a ros sleep
+		// }
 	}
 
 	/**

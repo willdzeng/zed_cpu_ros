@@ -8,6 +8,7 @@ find_package(catkin REQUIRED
             tf
             cv_bridge
             image_transport
+            camera_info_manager
         )
 # set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 

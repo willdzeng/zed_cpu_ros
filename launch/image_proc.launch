@@ -1,12 +1,12 @@
 <!-- Current image_pipeline and cv_bridge is not stable with opencv 3.0, image_proc not working for me
  and tried of rolling back to opencv2.4, so test if it works for opencv 2.4 -->
 <launch>
-  <include file="$(find zed_cpu_ros)/launch/zed_cpu_ros.launch" ns="camera"/>
-  <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" respawn="true" output="screen" ns="camera"/>
-<!--   	<remap from="left/image_raw" to="/left/image_raw"/>
-  	<remap from="left/camera_info" to="/left/camera_info"/>
-  	<remap from="right/image_raw" to="/right/image_raw"/>
-  	<remap from="right/camera_info" to="/right/camera_info"/> -->
-  <!-- </node> -->
+  <include file="$(find zed_cpu_ros)/launch/zed_cpu_ros.launch"/>
+  <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" respawn="true" output="screen" ns="camera">
+  	<remap from="left/image_raw" to="/camera/left/image_raw"/>
+  	<remap from="left/camera_info" to="/camera/left/camera_info"/>
+  	<remap from="right/image_raw" to="/camera/right/image_raw"/>
+  	<remap from="right/camera_info" to="/camera/right/camera_info"/>
+  </node>
 
 </launch>
