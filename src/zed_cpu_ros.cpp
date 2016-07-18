@@ -37,10 +37,11 @@ public:
 		cv::Mat left_image;
 		cv::Mat right_image;
 		setResolution(resolution);
-		setFrameRate(frame_rate);
+		// // this function doesn't work very well in current Opencv 2.4, so, just use ROS to control frame rate.
+		// setFrameRate(frame_rate);
 
 		std::cout << "Stereo Camera Set Resolution: " << camera_->get(WIDTH_ID) << "x" << camera_->get(HEIGHT_ID) << std::endl;
-		std::cout << "Stereo Camera Set Frame Rate: " << camera_->get(FPS_ID) << std::endl;
+		// std::cout << "Stereo Camera Set Frame Rate: " << camera_->get(FPS_ID) << std::endl;
 	}
 
 	~StereoCamera() {
@@ -132,99 +133,90 @@ public:
 		private_nh.param("left_frame_id", left_frame_id_, std::string("left_camera"));
 		private_nh.param("right_frame_id", right_frame_id_, std::string("right_camera"));
 		private_nh.param("show_image", show_image_, false);
+		private_nh.param("load_zed_config", load_zed_config_, false);
 
-		camera_info_manager::CameraInfoManager info_manager(nh);
-		info_manager.setCameraName("zed/left");
-		info_manager.loadCameraInfo( "package://zed_cpu_ros/config/left.yaml");
-		sensor_msgs::CameraInfo left_info = info_manager.getCameraInfo();
+		ROS_INFO("Try to initialize the camera");
+		StereoCamera zed(resolution_, frame_rate_);
+		ROS_INFO("Initialized the camera");
 
-		info_manager.setCameraName("zed/right");
-		info_manager.loadCameraInfo( "package://zed_cpu_ros/config/right.yaml");
-		sensor_msgs::CameraInfo right_info = info_manager.getCameraInfo();
+		// setup publisher stuff
+		image_transport::ImageTransport it(nh);
+		image_transport::Publisher left_image_pub = it.advertise("left/image_raw", 1);
+		image_transport::Publisher right_image_pub = it.advertise("right/image_raw", 1);
 
-		// camera_info_manager::CameraInfoManager left_info_manager(nh, "zed/left", "package://zed_cpu_ros/config/left.yaml");
-		// camera_info_manager::CameraInfoManager right_info_manager(nh, "zed/right", "package://zed_cpu_ros/config/right.yaml");
+		ros::Publisher left_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("left/camera_info", 1);
+		ros::Publisher right_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("right/camera_info", 1);
 
-		// sensor_msgs::CameraInfo left_info = left_info_manager.getCameraInfo();
-		// sensor_msgs::CameraInfo right_info = right_info_manager.getCameraInfo();
+		sensor_msgs::CameraInfo left_info, right_info;
 
-		std::cout << left_info << std::endl;
-		std::cout << right_info << std::endl;
+		ROS_INFO("Try load camera calibration files");
+		if (load_zed_config_) {
+			// get camera info from zed 
+			try {
+				getZedCameraInfo(config_file_location_, resolution_, left_info, right_info);
+			}
+			catch (std::runtime_error& e) {
+				ROS_INFO("Can't load camera info");
+				throw e;
+			}
+		} else {
+			// get config from the left, right.yaml in config 
+			camera_info_manager::CameraInfoManager info_manager(nh);
+			info_manager.setCameraName("zed/left");
+			info_manager.loadCameraInfo( "package://zed_cpu_ros/config/left.yaml");
+			left_info = info_manager.getCameraInfo();
 
-		// ROS_INFO("Try to initialize the camera");
-		// // initialize camera
-		// StereoCamera zed(resolution_, frame_rate_);
-		// ROS_INFO("Initialized the camera");
+			info_manager.setCameraName("zed/right");
+			info_manager.loadCameraInfo( "package://zed_cpu_ros/config/right.yaml");
+			right_info = info_manager.getCameraInfo();
+		}
 
-		// // set up empty message pointer
-		// sensor_msgs::CameraInfoPtr left_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
-		// sensor_msgs::CameraInfoPtr right_cam_info_msg_ptr(new sensor_msgs::CameraInfo());
+		// std::cout << left_info << std::endl;
+		// std::cout << right_info << std::endl;
 
-		// // setup publisher stuff
-		// image_transport::ImageTransport it(nh);
-		// image_transport::Publisher left_image_pub = it.advertise("left/image_raw", 1);
-		// image_transport::Publisher right_image_pub = it.advertise("right/image_raw", 1);
+		ROS_INFO("Got camera calibration files");
+		// loop to publish images;
+		cv::Mat left_image, right_image;
+		ros::Rate r(frame_rate_);
 
-		// ros::Publisher left_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("left/camera_info", 1);
-		// ros::Publisher right_cam_info_pub = nh.advertise<sensor_msgs::CameraInfo>("right/camera_info", 1);
+		while (nh.ok()) {
+			ros::Time now = ros::Time::now();
+			if (!zed.getImages(left_image, right_image)) {
+				ROS_INFO_ONCE("Can't find camera");
+			} else {
+				ROS_INFO_ONCE("Success, found camera");
+			}
+			if (show_image_) {
+				cv::imshow("left", left_image);
+				cv::imshow("right", right_image);
+			}
 
-		// ROS_INFO("Try load camera calibration files");
-
-		// //get camera info
-		// try {
-		// 	getCameraInfo(config_file_location_, resolution_, left_cam_info_msg_ptr, right_cam_info_msg_ptr);
-		// }
-		// catch (std::runtime_error& e) {
-		// 	ROS_INFO("Can't load camera info");
-		// 	throw e;
-		// }
-
-		// // ROS_INFO("Left Camera Info as following");
-		// // std::cout << *left_cam_info_msg_ptr << std::endl;
-		// // ROS_INFO("Right Camera Info as following");
-		// // std::cout << *right_cam_info_msg_ptr << std::endl;
-
-		// ROS_INFO("Got camera calibration files");
-
-		// // loop to publish images;
-		// cv::Mat left_image, right_image;
-		// while (nh.ok()) {
-		// 	ros::Time now = ros::Time::now();
-		// 	if (!zed.getImages(left_image, right_image)) {
-		// 		ROS_INFO_ONCE("Can't find camera");
-		// 	} else {
-		// 		ROS_INFO_ONCE("Success, found camera");
-		// 	}
-		// 	if (show_image_) {
-		// 		cv::imshow("left", left_image);
-		// 		cv::imshow("right", right_image);
-		// 	}
-
-		// 	if (left_image_pub.getNumSubscribers() > 0) {
-		// 		publishImage(left_image, left_image_pub, "left_frame", now);
-		// 	}
-		// 	if (right_image_pub.getNumSubscribers() > 0) {
-		// 		publishImage(right_image, right_image_pub, "right_frame", now);
-		// 	}
-		// 	if (left_cam_info_pub.getNumSubscribers() > 0) {
-		// 		publishCamInfo(left_cam_info_pub, left_cam_info_msg_ptr, now);
-		// 	}
-		// 	if (right_cam_info_pub.getNumSubscribers() > 0) {
-		// 		publishCamInfo(right_cam_info_pub, right_cam_info_msg_ptr, now);
-		// 	}
-		// 	// since the frame rate was set inside the camera, no need to do a ros sleep
-		// }
+			if (left_image_pub.getNumSubscribers() > 0) {
+				publishImage(left_image, left_image_pub, "left_frame", now);
+			}
+			if (right_image_pub.getNumSubscribers() > 0) {
+				publishImage(right_image, right_image_pub, "right_frame", now);
+			}
+			if (left_cam_info_pub.getNumSubscribers() > 0) {
+				publishCamInfo(left_cam_info_pub, left_info, now);
+			}
+			if (right_cam_info_pub.getNumSubscribers() > 0) {
+				publishCamInfo(right_cam_info_pub, right_info, now);
+			}
+			r.sleep();
+			// since the frame rate was set inside the camera, no need to do a ros sleep
+		}
 	}
 
 	/**
-	 * @brief      Gets the camera information.
+	 * @brief      Gets the camera information From Zed config.
 	 *
 	 * @param[in]  config_file         The configuration file
 	 * @param[in]  resolution          The resolution
 	 * @param[in]  left_cam_info_msg   The left camera information message
 	 * @param[in]  right_cam_info_msg  The right camera information message
 	 */
-	void getCameraInfo(std::string config_file, int resolution, sensor_msgs::CameraInfoPtr left_cam_info_msg, sensor_msgs::CameraInfoPtr right_cam_info_msg) {
+	void getZedCameraInfo(std::string config_file, int resolution, sensor_msgs::CameraInfo& left_info, sensor_msgs::CameraInfo& right_info) {
 		boost::property_tree::ptree pt;
 		boost::property_tree::ini_parser::read_ini(config_file, pt);
 		std::string left_str = "LEFT_CAM_";
@@ -256,60 +248,60 @@ public:
 		// assume zeros, maybe not right
 		double p1 = 0, p2 = 0, k3 = 0;
 
-		left_cam_info_msg->distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
-		right_cam_info_msg->distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
+		left_info.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
+		right_info.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
 
-		left_cam_info_msg->D.resize(5);
-		left_cam_info_msg->D[0] = l_k1;
-		left_cam_info_msg->D[1] = l_k2;
-		left_cam_info_msg->D[2] = k3;
-		left_cam_info_msg->D[3] = p1;
-		left_cam_info_msg->D[4] = p2;
+		left_info.D.resize(5);
+		left_info.D[0] = l_k1;
+		left_info.D[1] = l_k2;
+		left_info.D[2] = k3;
+		left_info.D[3] = p1;
+		left_info.D[4] = p2;
 
-		right_cam_info_msg->D.resize(5);
-		right_cam_info_msg->D[0] = r_k1;
-		right_cam_info_msg->D[1] = r_k2;
-		right_cam_info_msg->D[2] = k3;
-		right_cam_info_msg->D[3] = p1;
-		right_cam_info_msg->D[4] = p2;
+		right_info.D.resize(5);
+		right_info.D[0] = r_k1;
+		right_info.D[1] = r_k2;
+		right_info.D[2] = k3;
+		right_info.D[3] = p1;
+		right_info.D[4] = p2;
 
-		left_cam_info_msg->K.fill(0.0);
-		left_cam_info_msg->K[0] = l_fx;
-		left_cam_info_msg->K[2] = l_cx;
-		left_cam_info_msg->K[4] = l_fy;
-		left_cam_info_msg->K[5] = l_cy;
-		left_cam_info_msg->K[8] = 1.0;
+		left_info.K.fill(0.0);
+		left_info.K[0] = l_fx;
+		left_info.K[2] = l_cx;
+		left_info.K[4] = l_fy;
+		left_info.K[5] = l_cy;
+		left_info.K[8] = 1.0;
 
-		right_cam_info_msg->K.fill(0.0);
-		right_cam_info_msg->K[0] = r_fx;
-		right_cam_info_msg->K[2] = r_cx;
-		right_cam_info_msg->K[4] = r_fy;
-		right_cam_info_msg->K[5] = r_cy;
-		right_cam_info_msg->K[8] = 1.0;
+		right_info.K.fill(0.0);
+		right_info.K[0] = r_fx;
+		right_info.K[2] = r_cx;
+		right_info.K[4] = r_fy;
+		right_info.K[5] = r_cy;
+		right_info.K[8] = 1.0;
 
-		left_cam_info_msg->R.fill(0.0);
-		right_cam_info_msg->R.fill(0.0);
+		left_info.R.fill(0.0);
+		right_info.R.fill(0.0);
 
-		left_cam_info_msg->P.fill(0.0);
-		left_cam_info_msg->P[0] = l_fx;
-		left_cam_info_msg->P[2] = l_cx;
-		left_cam_info_msg->P[5] = l_fy;
-		left_cam_info_msg->P[6] = l_cy;
-		left_cam_info_msg->P[10] = 1.0;
+		left_info.P.fill(0.0);
+		left_info.P[0] = l_fx;
+		left_info.P[2] = l_cx;
+		left_info.P[5] = l_fy;
+		left_info.P[6] = l_cy;
+		left_info.P[10] = 1.0;
 
-		right_cam_info_msg->P.fill(0.0);
-		right_cam_info_msg->P[0] = r_fx;
-		right_cam_info_msg->P[2] = r_cx;
-		right_cam_info_msg->P[5] = r_fy;
-		right_cam_info_msg->P[6] = r_cy;
-		right_cam_info_msg->P[10] = 1.0;
-		right_cam_info_msg->P[3] = (-1 * l_fx * baseline);
+		right_info.P.fill(0.0);
+		right_info.P[0] = r_fx;
+		right_info.P[2] = r_cx;
+		right_info.P[5] = r_fy;
+		right_info.P[6] = r_cy;
+		right_info.P[10] = 1.0;
+		right_info.P[3] = (-1 * l_fx * baseline);
 
-		left_cam_info_msg->width = right_cam_info_msg->width = width_;
-		left_cam_info_msg->height = right_cam_info_msg->height = height_;
+		left_info.width = right_info.width = width_;
+		left_info.height = right_info.height = height_;
 
-		left_cam_info_msg->header.frame_id = left_frame_id_;
-		right_cam_info_msg->header.frame_id = right_frame_id_;
+		left_info.header.frame_id = left_frame_id_;
+		right_info.header.frame_id = right_frame_id_;
 	}
 
 	/**
@@ -319,8 +311,8 @@ public:
 	 * @param[in]  cam_info_msg  The camera information message
 	 * @param[in]  now           The now
 	 */
-	void publishCamInfo(ros::Publisher pub_cam_info, sensor_msgs::CameraInfoPtr cam_info_msg, ros::Time now) {
-		cam_info_msg->header.stamp = now;
+	void publishCamInfo(const ros::Publisher& pub_cam_info, sensor_msgs::CameraInfo& cam_info_msg, ros::Time now) {
+		cam_info_msg.header.stamp = now;
 		pub_cam_info.publish(cam_info_msg);
 	}
 
@@ -344,11 +336,10 @@ public:
 private:
 	int resolution_;
 	double frame_rate_;
-	bool show_image_;
+	bool show_image_, load_zed_config_;
 	double width_, height_;
 	std::string left_frame_id_, right_frame_id_;
 	std::string config_file_location_;
-
 };
 
 }
