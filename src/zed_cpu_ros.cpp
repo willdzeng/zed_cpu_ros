@@ -149,9 +149,10 @@ public:
 
 		sensor_msgs::CameraInfo left_info, right_info;
 
+
 		ROS_INFO("Try load camera calibration files");
 		if (load_zed_config_) {
-			// get camera info from zed 
+			// get camera info from zed
 			try {
 				getZedCameraInfo(config_file_location_, resolution_, left_info, right_info);
 			}
@@ -160,7 +161,7 @@ public:
 				throw e;
 			}
 		} else {
-			// get config from the left, right.yaml in config 
+			// get config from the left, right.yaml in config
 			camera_info_manager::CameraInfoManager info_manager(nh);
 			info_manager.setCameraName("zed/left");
 			info_manager.loadCameraInfo( "package://zed_cpu_ros/config/left.yaml");
@@ -169,6 +170,9 @@ public:
 			info_manager.setCameraName("zed/right");
 			info_manager.loadCameraInfo( "package://zed_cpu_ros/config/right.yaml");
 			right_info = info_manager.getCameraInfo();
+
+			left_info.header.frame_id = left_frame_id_;
+			right_info.header.frame_id = right_frame_id_;
 		}
 
 		// std::cout << left_info << std::endl;

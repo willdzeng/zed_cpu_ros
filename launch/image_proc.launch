@@ -7,6 +7,14 @@
   	<remap from="left/camera_info" to="/camera/left/camera_info"/>
   	<remap from="right/image_raw" to="/camera/right/image_raw"/>
   	<remap from="right/camera_info" to="/camera/right/camera_info"/>
+  	<param name="min_disparity" value="1"/>
+  	<param name="correlation_window_size" value="20"/>
   </node>
+
+	<group ns="camera">
+		<node pkg="nodelet" type="nodelet" name="depth_nodelet_manager"  args="manager"/>
+		<node pkg="nodelet" type="nodelet" name="depth" args="load rtabmap_ros/disparity_to_depth depth_nodelet_manager"/>
+	</group>
+
 
 </launch>
