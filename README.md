@@ -39,7 +39,7 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 
     (2). Do a calibration yourself:
     
-    This option is suggested.
+    This option is suggested. Reference: http://wiki.ros.org/camera_calibration
     ```
     roslaunch zed_cpu_ros camera_calibration.launch
     ```
