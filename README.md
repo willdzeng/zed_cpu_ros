@@ -11,19 +11,23 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     cd ..
     catkin_make
     ```
-
-2. find your zed calibration files in
+2. Get your calibration files:
+    You can get your calibration files from zed or do a calibration your self by using ROS camera calibration package.
+    
+    (1). From zed:
+    
+    Find your zed calibration files in
     ```
-	cd /usr/local/zed/settings
+    cd /usr/local/zed/settings
     ```
-	or download from:
-	http://calib.stereolabs.com/?SN=XXXX
+    or download from:
+    http://calib.stereolabs.com/?SN=XXXX
 
-	Note: XXXX is your last four digit S/N of your camera, make sure to change it!!
+    Note: XXXX is your last four digit S/N of your camera, make sure to change it!!
 
-3. put the .conf file into zed_cpu_ros/config folder
+    put the .conf file into zed_cpu_ros/config folder
 
-4. update launch file configuration file name in zed_cpu_ros.launch into your SNXXXX.conf
+    update launch file configuration file name in zed_cpu_ros.launch into your SNXXXX.conf
     ```
     roscd zed_cpu_ros/launch
     gedit zed_cpu_ros.launch
@@ -33,7 +37,17 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     <arg name="config_file_location" default="$(find zed_cpu_ros)/config/SN1010.conf"/>
     ```
 
-5. launch the code
+    (2). Do a calibration yourself:
+    
+    This option is suggested.
+    ```
+    roslaunch zed_cpu_ros camera_calibration.launch
+    ```
+    After calibration:
+    Find the left.yaml and right.yaml in the tar file and put them into the zed_cpu_ros/config folder.
+    The calibration file will be loaded if you turn <load_zed_config> off in the launch file.
+
+3. launch the code
     ```
     roslaunch zed_cpu_ros zed_cpu_ros.launch
     ```
@@ -61,4 +75,4 @@ Patented articulated traction control ARTI technology for stair climbing and obs
 http://transcendrobotics.com/
 
 # Authour:
-Di Zeng	
+Di Zeng 

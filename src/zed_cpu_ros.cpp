@@ -133,7 +133,7 @@ public:
 		private_nh.param("left_frame_id", left_frame_id_, std::string("left_camera"));
 		private_nh.param("right_frame_id", right_frame_id_, std::string("right_camera"));
 		private_nh.param("show_image", show_image_, false);
-		private_nh.param("load_zed_config", load_zed_config_, false);
+		private_nh.param("load_zed_config", load_zed_config_, true);
 
 		ROS_INFO("Try to initialize the camera");
 		StereoCamera zed(resolution_, frame_rate_);
@@ -152,6 +152,7 @@ public:
 
 		ROS_INFO("Try load camera calibration files");
 		if (load_zed_config_) {
+			ROS_INFO("Loading from zed calibration files");
 			// get camera info from zed
 			try {
 				getZedCameraInfo(config_file_location_, resolution_, left_info, right_info);
@@ -161,6 +162,7 @@ public:
 				throw e;
 			}
 		} else {
+			ROS_INFO("Loading from ROS calibration files");
 			// get config from the left, right.yaml in config
 			camera_info_manager::CameraInfoManager info_manager(nh);
 			info_manager.setCameraName("zed/left");

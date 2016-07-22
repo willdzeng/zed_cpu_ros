@@ -9,6 +9,7 @@
 	<param name="show_image" value="false"/>
 	<param name="left_frame_id" value="left_frame"/>
 	<param name="right_frame_id" value="left_frame"/>
+	<param name="load_zed_config" value="true"/>
 </node>
 
 <node pkg="tf" type="static_transform_publisher" name="static_tf_1" args="0.25 0 0.4 0 0 0 1 base_link left_frame 30"/>
