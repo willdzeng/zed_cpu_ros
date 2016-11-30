@@ -13,7 +13,7 @@
 
 	<group ns="camera">
 		<node pkg="nodelet" type="nodelet" name="depth_nodelet_manager"  args="manager"/>
-		<node pkg="nodelet" type="nodelet" name="depth" args="load rtabmap_ros/disparity_to_depth depth_nodelet_manager"/>
+		<!-- <node pkg="nodelet" type="nodelet" name="depth" args="load rtabmap_ros/disparity_to_depth depth_nodelet_manager"/> -->
 	</group>
 
 

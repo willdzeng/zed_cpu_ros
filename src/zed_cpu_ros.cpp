@@ -230,10 +230,10 @@ public:
 		std::string reso_str = "";
 
 		switch (resolution) {
-		case 0: reso_str = "2K";
-		case 1: reso_str = "FHD";
-		case 2: reso_str = "HD";
-		case 3: reso_str = "VGA";
+		case 0: reso_str = "2K"; break;
+		case 1: reso_str = "FHD"; break;
+		case 2: reso_str = "HD"; break;
+		case 3: reso_str = "VGA"; break;
 		}
 		// left value
 		double l_cx = pt.get<double>(left_str + reso_str + ".cx");
@@ -251,12 +251,17 @@ public:
 		double r_k2 = pt.get<double>(right_str + reso_str + ".k2");
 		// conver mm to m
 		double baseline = pt.get<double>("STEREO.BaseLine") * 0.001;
+		// get Rx and Rz
+		double rx = pt.get<double>("STEREO.RX_"+reso_str);
+		double rz = pt.get<double>("STEREO.RZ_"+reso_str);
 		// assume zeros, maybe not right
 		double p1 = 0, p2 = 0, k3 = 0;
 
 		left_info.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
 		right_info.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
 
+		// distortion parameters
+		// For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3).
 		left_info.D.resize(5);
 		left_info.D[0] = l_k1;
 		left_info.D[1] = l_k2;
@@ -271,6 +276,10 @@ public:
 		right_info.D[3] = p1;
 		right_info.D[4] = p2;
 
+		// Intrinsic camera matrix
+		// 	   [fx  0 cx]
+		// K = [ 0 fy cy]
+		// 	   [ 0  0  1]
 		left_info.K.fill(0.0);
 		left_info.K[0] = l_fx;
 		left_info.K[2] = l_cx;
@@ -285,9 +294,24 @@ public:
 		right_info.K[5] = r_cy;
 		right_info.K[8] = 1.0;
 
+		// rectification matrix
 		left_info.R.fill(0.0);
+		// left_info.R[0] = rx;
+		left_info.R[0] = 1.0;
+		left_info.R[4] = 1.0;
+		// left_info.R[8] = rz;
+		left_info.R[8] = 1.0;
 		right_info.R.fill(0.0);
+		// right_info.R[0] = rx;
+		right_info.R[0] = 1.0;
+		right_info.R[4] = 1.0;
+		// right_info.R[8] = rz;
+		right_info.R[8] = 1.0;
 
+		// Projection/camera matrix
+		//     [fx'  0  cx' Tx]
+		// P = [ 0  fy' cy' Ty]
+		//     [ 0   0   1   0]
 		left_info.P.fill(0.0);
 		left_info.P[0] = l_fx;
 		left_info.P[2] = l_cx;
@@ -298,10 +322,10 @@ public:
 		right_info.P.fill(0.0);
 		right_info.P[0] = r_fx;
 		right_info.P[2] = r_cx;
+		right_info.P[3] = (-1 * l_fx * baseline);
 		right_info.P[5] = r_fy;
 		right_info.P[6] = r_cy;
 		right_info.P[10] = 1.0;
-		right_info.P[3] = (-1 * l_fx * baseline);
 
 		left_info.width = right_info.width = width_;
 		left_info.height = right_info.height = height_;
