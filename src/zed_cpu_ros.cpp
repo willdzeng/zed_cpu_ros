@@ -254,6 +254,7 @@ public:
 		// get Rx and Rz
 		double rx = pt.get<double>("STEREO.RX_"+reso_str);
 		double rz = pt.get<double>("STEREO.RZ_"+reso_str);
+		double ry = pt.get<double>("STEREO.CV_"+reso_str);
 		// assume zeros, maybe not right
 		double p1 = 0, p2 = 0, k3 = 0;
 
@@ -296,17 +297,16 @@ public:
 
 		// rectification matrix
 		left_info.R.fill(0.0);
-		// left_info.R[0] = rx;
-		left_info.R[0] = 1.0;
-		left_info.R[4] = 1.0;
-		// left_info.R[8] = rz;
-		left_info.R[8] = 1.0;
 		right_info.R.fill(0.0);
-		// right_info.R[0] = rx;
-		right_info.R[0] = 1.0;
-		right_info.R[4] = 1.0;
-		// right_info.R[8] = rz;
-		right_info.R[8] = 1.0;
+		cv::Mat rvec = (cv::Mat_<double>(3, 1) << rx, ry, rz);
+		cv::Mat rmat(3, 3, CV_64F);
+		cv::Rodrigues(rvec, rmat);
+		int id = 0;
+		cv::MatIterator_<double> it, end;
+		for (it = rmat.begin<double>(); it != rmat.end<double>(); ++it, id++){
+			left_info.R[id] = *it;
+			right_info.R[id] = *it;
+		}
 
 		// Projection/camera matrix
 		//     [fx'  0  cx' Tx]
