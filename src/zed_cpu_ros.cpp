@@ -296,7 +296,12 @@ public:
 		right_info.K[8] = 1.0;
 
 		// rectification matrix
+		// left is identity
 		left_info.R.fill(0.0);
+		left_info.R[0] = 1.0;
+		left_info.R[4] = 1.0;
+		left_info.R[8] = 1.0;
+		// right is the rvec
 		right_info.R.fill(0.0);
 		cv::Mat rvec = (cv::Mat_<double>(3, 1) << rx, ry, rz);
 		cv::Mat rmat(3, 3, CV_64F);
@@ -304,7 +309,6 @@ public:
 		int id = 0;
 		cv::MatIterator_<double> it, end;
 		for (it = rmat.begin<double>(); it != rmat.end<double>(); ++it, id++){
-			left_info.R[id] = *it;
 			right_info.R[id] = *it;
 		}
 
