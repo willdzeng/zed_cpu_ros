@@ -8,6 +8,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/distortion_models.h>
 #include <image_transport/image_transport.h>
+#include <boost/optional.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <camera_info_manager/camera_info_manager.h>
@@ -159,6 +160,7 @@ public:
 			}
 			catch (std::runtime_error& e) {
 				ROS_INFO("Can't load camera info");
+				ROS_ERROR("%s", e.what());
 				throw e;
 			}
 		} else {
@@ -230,10 +232,10 @@ public:
 		std::string reso_str = "";
 
 		switch (resolution) {
-		case 0: reso_str = "2K"; break;
-		case 1: reso_str = "FHD"; break;
-		case 2: reso_str = "HD"; break;
-		case 3: reso_str = "VGA"; break;
+			case 0: reso_str = "2K"; break;
+			case 1: reso_str = "FHD"; break;
+			case 2: reso_str = "HD"; break;
+			case 3: reso_str = "VGA"; break;
 		}
 		// left value
 		double l_cx = pt.get<double>(left_str + reso_str + ".cx");
@@ -249,12 +251,25 @@ public:
 		double r_fy = pt.get<double>(right_str + reso_str + ".fy");
 		double r_k1 = pt.get<double>(right_str + reso_str + ".k1");
 		double r_k2 = pt.get<double>(right_str + reso_str + ".k2");
-		// conver mm to m
-		double baseline = pt.get<double>("STEREO.BaseLine") * 0.001;
+
+		// get baseline and convert mm to m
+		boost::optional<double> baselineCheck;
+		double baseline = 0.0;
+		// some config files have "Baseline" instead of "BaseLine", check accordingly...
+		if (baselineCheck = pt.get_optional<double>("STEREO.BaseLine")) {
+			baseline = pt.get<double>("STEREO.BaseLine") * 0.001;
+		}
+		else if (baselineCheck = pt.get_optional<double>("STEREO.Baseline")) {
+			baseline = pt.get<double>("STEREO.Baseline") * 0.001;
+		}
+		else
+			throw std::runtime_error("baseline parameter not found");
+
 		// get Rx and Rz
 		double rx = pt.get<double>("STEREO.RX_"+reso_str);
 		double rz = pt.get<double>("STEREO.RZ_"+reso_str);
 		double ry = pt.get<double>("STEREO.CV_"+reso_str);
+
 		// assume zeros, maybe not right
 		double p1 = 0, p2 = 0, k3 = 0;
 
@@ -278,9 +293,9 @@ public:
 		right_info.D[4] = p2;
 
 		// Intrinsic camera matrix
-		// 	   [fx  0 cx]
-		// K = [ 0 fy cy]
-		// 	   [ 0  0  1]
+		// 	[fx  0 cx]
+		// K =  [ 0 fy cy]
+		//	[ 0  0  1]
 		left_info.K.fill(0.0);
 		left_info.K[0] = l_fx;
 		left_info.K[2] = l_cx;
@@ -337,7 +352,7 @@ public:
 	}
 
 	/**
-	 * @brief      { publish cameara info }
+	 * @brief      { publish camera info }
 	 *
 	 * @param[in]  pub_cam_info  The pub camera information
 	 * @param[in]  cam_info_msg  The camera information message
@@ -378,7 +393,13 @@ private:
 
 
 int main(int argc, char **argv) {
-	ros::init(argc, argv, "zed_camera");
-	arti::ZedCameraROS zed_ros;
-	return 0;
+    try {
+        ros::init(argc, argv, "zed_camera");
+        arti::ZedCameraROS zed_ros;
+        return EXIT_SUCCESS;
+    }
+    catch(std::runtime_error& e) {
+        ros::shutdown();
+        return EXIT_FAILURE;
+    }
 }
