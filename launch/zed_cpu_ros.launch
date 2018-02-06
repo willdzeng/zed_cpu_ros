@@ -8,7 +8,7 @@
 	<param name="config_file_location" value="$(arg config_file_location)"/>
 	<param name="show_image" value="false"/>
 	<param name="left_frame_id" value="left_frame"/>
-	<param name="right_frame_id" value="left_frame"/>
+	<param name="right_frame_id" value="right_frame"/>
 	<param name="load_zed_config" value="true"/>
 </node>
 
