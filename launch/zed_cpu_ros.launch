@@ -1,6 +1,7 @@
 <launch>
 <arg name="config_file_location" default="$(find zed_cpu_ros)/config/SN1267.conf"/>
 <arg name="camera_namespace" default="camera"/>
+<arg name="device_id" default="0"/>
 
 <node pkg="zed_cpu_ros" type="zed_cpu_ros" name="zed_cpu_ros_node" output="screen" ns="$(arg camera_namespace)" required="true">
 	<param name="resolution" value="2"/>
@@ -10,6 +11,7 @@
 	<param name="left_frame_id" value="left_frame"/>
 	<param name="right_frame_id" value="right_frame"/>
 	<param name="load_zed_config" value="true"/>
+	<param name="device_id" value="$(arg device_id)"/>
 </node>
 
 <node pkg="tf" type="static_transform_publisher" name="static_tf_1" args="0.25 0 0.4 0 0 0 1 base_link left_frame 30"/>

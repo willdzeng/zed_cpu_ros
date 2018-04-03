@@ -2,7 +2,7 @@ zed_cpu_ros
 ===========
 A simple zed camera driver which only use CPU and only publish left and right raw images and its camera info.
 
-# Useage:
+# Usage:
 1. git the packge into your working space
 
     ```
@@ -13,9 +13,9 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     ```
 2. Get your calibration files:
     You can get your calibration files from zed or do a calibration your self by using ROS camera calibration package.
-    
+
     (1). From zed:
-    
+
     Find your zed calibration files in
     ```
     cd /usr/local/zed/settings
@@ -38,7 +38,7 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     ```
 
     (2). Do a calibration yourself:
-    
+
     This option is suggested. Reference: http://wiki.ros.org/camera_calibration
     ```
     roslaunch zed_cpu_ros camera_calibration.launch
@@ -53,18 +53,19 @@ A simple zed camera driver which only use CPU and only publish left and right ra
     ```
 ## Launch file parameters
 
- Parameter                    |           Description                                       |              Value          
-------------------------------|-------------------------------------------------------------|-------------------------           
- resolution                   | ZED Camera resolution                                       | '0': HD2K                   
- _                            | _                                                           | '1': HD1080                 
- _                            | _                                                           | '2': HD720                  
- _                            | _                                                           | '3': VGA                                    
- frame_rate                   | Rate at which images are published                          | int                                             
- left_frame_id                | Left Frame ID                                               | string        
- right_frame_id               | Right Frame ID                                              | string        
- load_zed_config              | Whether to use ZED calibration file                         | bool        
- config_file_location         | The location of ZED calibration file                        | string        
- show_image                   | Whether to use opencv show image                            | bool        
+ Parameter                    |           Description                                       |              Value
+------------------------------|-------------------------------------------------------------|-------------------------
+ device_id                   | device_id selection                                       |  int
+ resolution                   | ZED Camera resolution                                       | '0': HD2K
+ _                            | _                                                           | '1': HD1080
+ _                            | _                                                           | '2': HD720
+ _                            | _                                                           | '3': VGA
+ frame_rate                   | Rate at which images are published                          | int
+ left_frame_id                | Left Frame ID                                               | string
+ right_frame_id               | Right Frame ID                                              | string
+ load_zed_config              | Whether to use ZED calibration file                         | bool
+ config_file_location         | The location of ZED calibration file                        | string
+ show_image                   | Whether to use opencv show image                            | bool
 
 # TODO:
 
@@ -75,5 +76,5 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 Patented articulated traction control ARTI technology for stair climbing and obstacle traversal without complex software or controls
 http://transcendrobotics.com/
 
-# Authour:
-Di Zeng 
+# Author:
+Di Zeng
