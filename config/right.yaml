@@ -1,6 +1,6 @@
 image_width: 1280
 image_height: 720
-camera_name: narrow_stereo/right
+camera_name: camera/right
 camera_matrix:
   rows: 3
   cols: 3
