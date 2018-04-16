@@ -135,6 +135,9 @@ public:
 		private_nh.param("show_image", show_image_, false);
 		private_nh.param("load_zed_config", load_zed_config_, true);
 		private_nh.param("device_id", device_id_, 0);
+		private_nh.param("encoding", encoding_, std::string("brg8"));
+
+		correctFramerate(resolution_,frame_rate_);
 
 		ROS_INFO("Try to initialize the camera");
 		StereoCamera zed(device_id_, resolution_, frame_rate_);
@@ -200,10 +203,10 @@ public:
 			}
 
 			if (left_image_pub.getNumSubscribers() > 0) {
-				publishImage(left_image, left_image_pub, "left_frame", now);
+				publishImage(left_image, left_image_pub, "left_frame", now, encoding_);
 			}
 			if (right_image_pub.getNumSubscribers() > 0) {
-				publishImage(right_image, right_image_pub, "right_frame", now);
+				publishImage(right_image, right_image_pub, "right_frame", now, encoding_);
 			}
 			if (left_cam_info_pub.getNumSubscribers() > 0) {
 				publishCamInfo(left_cam_info_pub, left_info, now);
@@ -370,15 +373,36 @@ public:
 	 * @param      img_pub       The image pub
 	 * @param[in]  img_frame_id  The image frame identifier
 	 * @param[in]  t             { parameter_description }
+	 * @param[in]  encoding      image_transport encoding
 	 */
-	void publishImage(cv::Mat img, image_transport::Publisher &img_pub, std::string img_frame_id, ros::Time t) {
+	void publishImage(cv::Mat img, image_transport::Publisher &img_pub, std::string img_frame_id, ros::Time t, const std::string& encoding) {
 		cv_bridge::CvImage cv_image;
 		cv_image.image = img;
-		cv_image.encoding = sensor_msgs::image_encodings::BGR8;
+		cv_image.encoding = encoding;
 		cv_image.header.frame_id = img_frame_id;
 		cv_image.header.stamp = t;
 		img_pub.publish(cv_image.toImageMsg());
 	}
+	/**
+	 * @brief      Correct frame rate according to resolution
+	 *
+	 * @param[in]  resolution          The resolution
+	 * @param      frame_rate   			 The camera frame rate
+	 */
+	 void correctFramerate(int resolution, double &frame_rate){
+		 double max_frame_rate;
+		 std::string reso_str = "";
+		 switch (resolution) {
+ 			case 0: max_frame_rate = 15; reso_str = "2K"; break;
+ 			case 1: max_frame_rate = 30; reso_str = "FHD"; break;
+ 			case 2: max_frame_rate = 60; reso_str = "HD"; break;
+ 			case 3: max_frame_rate = 100; reso_str = "VGA"; break;
+			default: ROS_FATAL("Unknow resolution passed"); return;
+ 		}
+		if(frame_rate > max_frame_rate)
+			ROS_WARN("frame_rate(%fHz) too high for resolution(%s), downgraded to %fHz",frame_rate,reso_str.c_str(),max_frame_rate);
+			frame_rate = max_frame_rate;
+	 }
 
 private:
 	int device_id_, resolution_;
@@ -387,6 +411,7 @@ private:
 	double width_, height_;
 	std::string left_frame_id_, right_frame_id_;
 	std::string config_file_location_;
+	std::string encoding_;
 };
 
 }

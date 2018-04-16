@@ -66,6 +66,7 @@ A simple zed camera driver which only use CPU and only publish left and right ra
  load_zed_config              | Whether to use ZED calibration file                         | bool
  config_file_location         | The location of ZED calibration file                        | string
  show_image                   | Whether to use opencv show image                            | bool
+ encoding                   | image encoding                            | string
 
 # TODO:
 
