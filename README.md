@@ -55,7 +55,7 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 
  Parameter                    |           Description                                       |              Value
 ------------------------------|-------------------------------------------------------------|-------------------------
- device_id                   | device_id selection                                       |  int
+ device_id                    | device_id selection                                         | int
  resolution                   | ZED Camera resolution                                       | '0': HD2K
  _                            | _                                                           | '1': HD1080
  _                            | _                                                           | '2': HD720
@@ -66,7 +66,7 @@ A simple zed camera driver which only use CPU and only publish left and right ra
  load_zed_config              | Whether to use ZED calibration file                         | bool
  config_file_location         | The location of ZED calibration file                        | string
  show_image                   | Whether to use opencv show image                            | bool
- encoding                   | image encoding                            | string
+ encoding                     | image encoding                                              | string
 
 # TODO:
 
