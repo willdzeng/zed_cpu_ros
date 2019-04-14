@@ -28,9 +28,9 @@ public:
    * @param[in]  resolution  The resolution
    * @param[in]  frame_rate  The frame rate
    */
-  StereoCamera(int device_id, int resolution, double frame_rate) : frame_rate_(30.0)
+  StereoCamera(std::string device_name, int resolution, double frame_rate) : frame_rate_(30.0)
   {
-    camera_ = new cv::VideoCapture(device_id);
+    camera_ = new cv::VideoCapture(device_name);
     cv::Mat raw;
     cv::Mat left_image;
     cv::Mat right_image;
@@ -154,13 +154,13 @@ public:
     private_nh.param("right_frame_id", right_frame_id_, std::string("right_camera"));
     private_nh.param("show_image", show_image_, false);
     private_nh.param("use_zed_config", use_zed_config_, true);
-    private_nh.param("device_id", device_id_, 0);
+    private_nh.param("device_name", device_name_, std::string("/dev/video0"));
     private_nh.param("encoding", encoding_, std::string("brg8"));
 
     correctFramerate(resolution_, frame_rate_);
 
     ROS_INFO("Try to initialize the camera");
-    StereoCamera zed(device_id_, resolution_, frame_rate_);
+    StereoCamera zed(device_name_, resolution_, frame_rate_);
     ROS_INFO("Initialized the camera");
 
     // setup publisher stuff
@@ -486,7 +486,8 @@ public:
   }
 
 private:
-  int device_id_, resolution_;
+  int resolution_;
+  std::string device_name_;
   double frame_rate_;
   bool show_image_, use_zed_config_;
   double width_, height_;

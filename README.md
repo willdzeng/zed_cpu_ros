@@ -55,7 +55,7 @@ A simple zed camera driver which only use CPU and only publish left and right ra
 
  Parameter                    |           Description                                       |              Value
 ------------------------------|-------------------------------------------------------------|-------------------------
- device_id                    | device_id selection                                         | int
+ device_name                  | camera device_name                                          | sting
  resolution                   | ZED Camera resolution                                       | '0': HD2K
  _                            | _                                                           | '1': HD1080
  _                            | _                                                           | '2': HD720
