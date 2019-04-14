@@ -2,6 +2,8 @@ zed_cpu_ros
 ===========
 A simple zed camera driver which only use CPU and only publish left and right raw images and its camera info.
 
+https://travis-ci.org/willdzeng/zed_cpu_ros.svg?branch=master
+
 # Usage:
 1. git the packge into your working space
 
